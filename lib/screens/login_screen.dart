@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,15 +35,33 @@ class _LoginScreenState extends State<LoginScreen> {
             ElevatedButton(
               onPressed: () async {
                 final auth = Provider.of<AuthProvider>(context, listen: false);
-                await auth.login(_usernameController.text, _passwordController.text);
+                try {
+                  await auth.login(_usernameController.text, _passwordController.text);
+                  if (auth.isLoggedIn) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Login successful!')),
+                    );
+                    // TODO: Navigate to home/game screen
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Login failed.')),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Login failed: \\${e.toString()}')),
+                  );
+                }
               },
               child: const Text('Login'),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () async {
-                final auth = Provider.of<AuthProvider>(context, listen: false);
-                await auth.signUp(_usernameController.text, _passwordController.text);
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SignupScreen()),
+                );
               },
               child: const Text('Sign Up'),
             ),
