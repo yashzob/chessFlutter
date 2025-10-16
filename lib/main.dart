@@ -3,7 +3,7 @@ import 'screens/login_screen.dart';
 import 'screens/game_screen.dart';
 import 'providers/auth_provider.dart';
 import 'package:provider/provider.dart';
-
+import 'screens/lobby_screen.dart';
 void main() {
   runApp(
     MultiProvider(
@@ -27,7 +27,8 @@ class ChessApp extends StatelessWidget {
       ),
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) {
-          return auth.isLoggedIn ? const GameScreen() : const LoginScreen();
+          // After login, navigate to LobbyScreen for matchmaking
+          return auth.isLoggedIn ? const LobbyScreen() : const LoginScreen();
         },
       ),
     );

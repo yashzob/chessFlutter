@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../widgets/chessboard.dart';
 import '../services/websocket_service.dart';
 
+
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+  final int gameId;
+  const GameScreen({super.key, required this.gameId});
 
   @override
   _GameScreenState createState() => _GameScreenState();
@@ -16,7 +18,7 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     _wsService = WebSocketService();
-    _wsService.connect('ws://localhost:8000/ws/game/1/');  // Example game ID
+    _wsService.connect('ws://localhost:8000/ws/game/${widget.gameId}/');
   }
 
   @override
