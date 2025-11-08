@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/websocket_service.dart';
+import '../providers/auth_provider.dart';
 import 'game_screen.dart';
+import 'package:provider/provider.dart';
 
 enum LobbyStatus { waiting, matched }
 
@@ -20,27 +22,37 @@ class _LobbyScreenState extends State<LobbyScreen> {
   void initState() {
     super.initState();
     _wsService = WebSocketService();
-    // Use 10.0.2.2 for Android emulator to access host machine
-    _wsService.connect('ws://10.0.2.2:8000/ws/matchmaking/');
-    _wsService.send('{"action": "find_match"}');
-    _wsService.onMessage = (message) {
-      final data = message.toString();
-      if (data.contains('matched')) {
-        final gameId = RegExp(r'"game_id":\s*(\d+)').firstMatch(data)?.group(1);
-        setState(() {
-          _status = LobbyStatus.matched;
-          _gameId = int.tryParse(gameId ?? '');
-        });
-        if (_gameId != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => GameScreen(gameId: _gameId!),
-            ),
-          );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token != null) {
+      // Use 10.0.2.2 for Android emulator to access host machine
+      _wsService.connect('ws://10.0.2.2:8000/ws/matchmaking/?token=$token');
+      _wsService.onMessage = (message) {
+        final data = message.toString();
+        if (data.contains('matched')) {
+          final gameId = RegExp(r'"game_id":\s*(\d+)').firstMatch(data)?.group(1);
+          setState(() {
+            _status = LobbyStatus.matched;
+            _gameId = int.tryParse(gameId ?? '');
+          });
+          if (_gameId != null) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GameScreen(gameId: _gameId!),
+              ),
+            );
+          }
         }
-      }
-    };
+      };
+      // Wait for connection to be ready before sending
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _wsService.send('{"action": "find_match"}');
+      });
+    } else {
+      // Handle no token case, perhaps navigate back to login
+      Navigator.pop(context);
+    }
   }
 
   @override
